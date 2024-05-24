@@ -1,10 +1,9 @@
-import { Button } from './components/ui/button';
+import Nav from './components/Nav';
 
 function App() {
   return (
     <>
-      <h1 className="text-4xl">Sample!</h1>
-      <Button>Click me!!</Button>
+      <Nav />
     </>
   );
 }
