@@ -1,16 +1,15 @@
-import Nav from './components/Nav';
-import Main from './components/main';
-import Signup from './components/signup';
+import './global.css';
+import { routeTree } from './routeTree.gen';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
 
-function App() {
-  return (
-    <>
-      <Nav />
-      <Main>
-        <Signup />
-      </Main>
-    </>
-  );
+const router = createRouter({ routeTree });
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
 }
 
-export default App;
+export default function App() {
+  return <RouterProvider router={router} />;
+}

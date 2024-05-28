@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { signupSchema } from '@/schemas/signup';
+import { signinSchema } from '@/schemas/signin';
 import { zodResolver } from '@hookform/resolvers/zod';
 
 import {
@@ -14,20 +14,18 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-export default function Signup() {
-  const form = useForm<z.infer<typeof signupSchema>>({
-    resolver: zodResolver(signupSchema),
+export default function Signin() {
+  const form = useForm<z.infer<typeof signinSchema>>({
+    resolver: zodResolver(signinSchema),
     defaultValues: {
       username: '',
       password: '',
-      firstname: '',
-      lastname: '',
     },
   });
 
-  async function onSubmit(values: z.infer<typeof signupSchema>) {
+  async function onSubmit(values: z.infer<typeof signinSchema>) {
     console.log(values);
-    const endpoint = `${import.meta.env.VITE_API_URL}/auth/signup`;
+    const endpoint = `${import.meta.env.VITE_API_URL}/auth/signin`;
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -37,14 +35,14 @@ export default function Signup() {
         body: JSON.stringify(values),
       });
 
-      if (response.status === 201) {
+      if (response.status === 200) {
         const data = await response.json();
         console.log('accessToken:', data.accessToken);
       } else {
-        console.error('Failed to sign up:', response.statusText);
+        console.error('Failed to sign in:', response.statusText);
       }
     } catch (error) {
-      console.error('Error during sign up:', error);
+      console.error('Error during sign in:', error);
     }
   }
 
@@ -79,32 +77,6 @@ export default function Signup() {
                   placeholder="strong password"
                   {...field}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="firstname"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Firstname</FormLabel>
-              <FormControl>
-                <Input placeholder="Ram" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="lastname"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Lastname</FormLabel>
-              <FormControl>
-                <Input placeholder="Prasad" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
