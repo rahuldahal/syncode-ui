@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,11 +36,14 @@ export default function Signin() {
         body: JSON.stringify(values),
       });
 
+      const data = await response.json();
       if (response.status === 200) {
-        const data = await response.json();
         console.log('accessToken:', data.accessToken);
+        toast.success('Signed in successfully! Redirecting to /editor.');
       } else {
-        console.error('Failed to sign in:', response.statusText);
+        toast.error(
+          Array.isArray(data.message) ? data.message[0] : data.message,
+        );
       }
     } catch (error) {
       console.error('Error during sign in:', error);
@@ -59,7 +63,7 @@ export default function Signin() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="ram_prasad" {...field} />
+                <Input placeholder="ram_prasad" {...field} autoFocus />
               </FormControl>
               <FormMessage />
             </FormItem>

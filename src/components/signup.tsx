@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -37,11 +38,14 @@ export default function Signup() {
         body: JSON.stringify(values),
       });
 
+      const data = await response.json();
       if (response.status === 201) {
-        const data = await response.json();
         console.log('accessToken:', data.accessToken);
+        toast.success('Account created! Redirecting to /editor.');
       } else {
-        console.error('Failed to sign up:', response.statusText);
+        toast.error(
+          Array.isArray(data.message) ? data.message[0] : data.message,
+        );
       }
     } catch (error) {
       console.error('Error during sign up:', error);
@@ -61,7 +65,7 @@ export default function Signup() {
             <FormItem>
               <FormLabel>Username</FormLabel>
               <FormControl>
-                <Input placeholder="ram_prasad" {...field} />
+                <Input placeholder="ram_prasad" {...field} autoFocus />
               </FormControl>
               <FormMessage />
             </FormItem>
