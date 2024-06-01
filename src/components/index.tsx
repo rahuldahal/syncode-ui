@@ -1,7 +1,19 @@
-import { Link } from '@tanstack/react-router';
+import { useEffect } from 'react';
 import { Button } from './ui/button';
+import useAuthStore from '@/store/auth.store';
+import { Link, Navigate } from '@tanstack/react-router';
 
 export default function Index() {
+  const { isAuthenticated, checkAuthStatus } = useAuthStore();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  if (isAuthenticated) {
+    return <Navigate to="/editor" />;
+  }
+
   return (
     <>
       <h1 className="text-4xl font-bold">The UI is under construction.</h1>

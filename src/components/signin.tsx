@@ -1,11 +1,14 @@
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import useAuthStore from '@/store/auth.store';
+import LoadingButton from './ui/loading-button';
 import { Button } from '@/components/ui/button';
 import { signinSchema } from '@/schemas/signin';
 import { zodResolver } from '@hookform/resolvers/zod';
-
+import { Navigate, useNavigate } from '@tanstack/react-router';
 import {
   Form,
   FormControl,
@@ -16,6 +19,11 @@ import {
 } from '@/components/ui/form';
 
 export default function Signin() {
+  // INFO: States
+  const [submiting, setSubmiting] = useState(false);
+
+  // INFO: Hooks
+  const navigate = useNavigate({ from: '/signin' });
   const form = useForm<z.infer<typeof signinSchema>>({
     resolver: zodResolver(signinSchema),
     defaultValues: {
@@ -24,8 +32,24 @@ export default function Signin() {
     },
   });
 
+  // INFO: Authentication start
+
+  const { isAuthenticated, checkAuthStatus, setAccessToken } = useAuthStore();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  if (isAuthenticated) {
+    return <Navigate to="/editor" />;
+  }
+
+  // INFO: Authentication finish
+  // INFO: Signin logic start
+
   async function onSubmit(values: z.infer<typeof signinSchema>) {
-    console.log(values);
+    setSubmiting(true);
+
     const endpoint = `${import.meta.env.VITE_API_URL}/auth/signin`;
     try {
       const response = await fetch(endpoint, {
@@ -38,8 +62,9 @@ export default function Signin() {
 
       const data = await response.json();
       if (response.status === 200) {
-        console.log('accessToken:', data.accessToken);
+        setAccessToken(data.accessToken);
         toast.success('Signed in successfully! Redirecting to /editor.');
+        navigate({ to: '/editor' });
       } else {
         toast.error(
           Array.isArray(data.message) ? data.message[0] : data.message,
@@ -47,6 +72,8 @@ export default function Signin() {
       }
     } catch (error) {
       console.error('Error during sign in:', error);
+    } finally {
+      setSubmiting(false);
     }
   }
 
@@ -86,7 +113,7 @@ export default function Signin() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        {submiting ? <LoadingButton /> : <Button type="submit">Submit</Button>}
       </form>
     </Form>
   );

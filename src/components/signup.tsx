@@ -1,10 +1,14 @@
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
+import useAuthStore from '@/store/auth.store';
 import { Button } from '@/components/ui/button';
+import LoadingButton from './ui/loading-button';
 import { signupSchema } from '@/schemas/signup';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Navigate, useNavigate } from '@tanstack/react-router';
 
 import {
   Form,
@@ -16,6 +20,11 @@ import {
 } from '@/components/ui/form';
 
 export default function Signup() {
+  // INFO: States
+  const [submiting, setSubmiting] = useState(false);
+
+  // INFO: Hooks
+  const navigate = useNavigate({ from: '/signup' });
   const form = useForm<z.infer<typeof signupSchema>>({
     resolver: zodResolver(signupSchema),
     defaultValues: {
@@ -26,8 +35,24 @@ export default function Signup() {
     },
   });
 
+  // INFO: Authentication start
+
+  const { isAuthenticated, checkAuthStatus, setAccessToken } = useAuthStore();
+
+  useEffect(() => {
+    checkAuthStatus();
+  }, [checkAuthStatus]);
+
+  if (isAuthenticated) {
+    return <Navigate to="/editor" />;
+  }
+
+  // INFO: Authentication finish
+  // INFO: Signup logic start
+
   async function onSubmit(values: z.infer<typeof signupSchema>) {
-    console.log(values);
+    setSubmiting(true);
+
     const endpoint = `${import.meta.env.VITE_API_URL}/auth/signup`;
     try {
       const response = await fetch(endpoint, {
@@ -40,8 +65,9 @@ export default function Signup() {
 
       const data = await response.json();
       if (response.status === 201) {
-        console.log('accessToken:', data.accessToken);
+        setAccessToken(data.accessToken);
         toast.success('Account created! Redirecting to /editor.');
+        navigate({ to: '/editor' });
       } else {
         toast.error(
           Array.isArray(data.message) ? data.message[0] : data.message,
@@ -49,6 +75,8 @@ export default function Signup() {
       }
     } catch (error) {
       console.error('Error during sign up:', error);
+    } finally {
+      setSubmiting(false);
     }
   }
 
@@ -114,7 +142,7 @@ export default function Signup() {
             </FormItem>
           )}
         />
-        <Button type="submit">Submit</Button>
+        {submiting ? <LoadingButton /> : <Button type="submit">Submit</Button>}
       </form>
     </Form>
   );
