@@ -1,14 +1,9 @@
-import { useEffect } from 'react';
 import { Button } from './ui/button';
 import useAuthStore from '@/store/auth.store';
 import { Link, Navigate } from '@tanstack/react-router';
 
 export default function Index() {
-  const { isAuthenticated, checkAuthStatus } = useAuthStore();
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+  const { isAuthenticated } = useAuthStore();
 
   if (isAuthenticated) {
     return <Navigate to="/editor" />;

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import useAuthStore from '@/store/auth.store';
 import LoadingButton from './ui/loading-button';
@@ -34,11 +34,7 @@ export default function Signin() {
 
   // INFO: Authentication start
 
-  const { isAuthenticated, checkAuthStatus, setAccessToken } = useAuthStore();
-
-  useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+  const { isAuthenticated, setAccessToken } = useAuthStore();
 
   if (isAuthenticated) {
     return <Navigate to="/editor" />;

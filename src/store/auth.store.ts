@@ -6,6 +6,7 @@ import { ONE_DAY } from '@/constants';
 interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
+  isLoading: boolean;
   setAccessToken: (token: string) => void;
   clearAccessToken: () => void;
   checkAuthStatus: () => Promise<void>;
@@ -14,8 +15,9 @@ interface AuthState {
 const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   isAuthenticated: false,
+  isLoading: true,
   setAccessToken: (token) => {
-    set({ accessToken: token, isAuthenticated: true });
+    set({ accessToken: token, isAuthenticated: true, isLoading: false });
 
     // Set accessToken in a cookie with a max age of one day
     document.cookie = `accessToken=${token}; max-age=${ONE_DAY}; path=/`;
@@ -29,9 +31,11 @@ const useAuthStore = create<AuthState>((set, get) => ({
   checkAuthStatus: async () => {
     const token = get().accessToken || getCookie('accessToken');
     if (!token) {
-      set({ isAuthenticated: false });
+      set({ isAuthenticated: false, isLoading: false });
       return;
     }
+
+    set({ isLoading: true });
 
     try {
       const response = await axios.get(
@@ -51,6 +55,8 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
       // Clear the cookie
       document.cookie = 'accessToken=; max-age=0; path=/';
+    } finally {
+      set({ isLoading: false });
     }
   },
 }));
