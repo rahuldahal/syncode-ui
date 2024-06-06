@@ -7,11 +7,11 @@ import { Toaster } from '@/components/ui/sonner';
 import { TanStackRouterDevtools } from '@tanstack/router-devtools';
 
 export default function Root() {
-  const { isLoading, checkAuthStatus } = useAuthStore();
+  const { isLoading, fetchAccessToken } = useAuthStore();
 
   useEffect(() => {
-    checkAuthStatus();
-  }, [checkAuthStatus]);
+    fetchAccessToken();
+  }, [fetchAccessToken]);
 
   if (isLoading) {
     return <h1 className="text-2xl">Loading...</h1>;
