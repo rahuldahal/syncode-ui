@@ -17,6 +17,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import useFileStore from '@/store/file.store';
 
 export default function Signin() {
   // INFO: States
@@ -35,6 +36,7 @@ export default function Signin() {
   // INFO: Authentication start
 
   const { isAuthenticated, setAccessToken } = useAuthStore();
+  const { fetchFiles } = useFileStore();
 
   if (isAuthenticated) {
     return <Navigate to="/editor" />;
@@ -60,6 +62,7 @@ export default function Signin() {
       if (response.status === 200) {
         setAccessToken(data.accessToken);
         toast.success('Signed in successfully! Redirecting to /editor.');
+        fetchFiles();
         navigate({ to: '/editor' });
       } else {
         toast.error(
