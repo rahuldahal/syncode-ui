@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import useAuthStore from '@/store/auth.store';
+import useFileStore from '@/store/file.store';
 import LoadingButton from './ui/loading-button';
 import { Button } from '@/components/ui/button';
 import { signinSchema } from '@/schemas/signin';
@@ -17,7 +18,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import useFileStore from '@/store/file.store';
 
 export default function Signin() {
   // INFO: States

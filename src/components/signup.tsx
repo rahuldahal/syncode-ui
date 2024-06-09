@@ -4,6 +4,7 @@ import { useForm } from 'react-hook-form';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import useAuthStore from '@/store/auth.store';
+import useFileStore from '@/store/file.store';
 import { Button } from '@/components/ui/button';
 import LoadingButton from './ui/loading-button';
 import { signupSchema } from '@/schemas/signup';
@@ -38,6 +39,7 @@ export default function Signup() {
   // INFO: Authentication start
 
   const { isAuthenticated, setAccessToken } = useAuthStore();
+  const { fetchFiles } = useFileStore();
 
   if (isAuthenticated) {
     return <Navigate to="/editor" />;
@@ -63,6 +65,7 @@ export default function Signup() {
       if (response.status === 201) {
         setAccessToken(data.accessToken);
         toast.success('Account created! Redirecting to /editor.');
+        fetchFiles();
         navigate({ to: '/editor' });
       } else {
         toast.error(

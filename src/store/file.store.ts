@@ -2,12 +2,15 @@ import axios from 'axios';
 import { create } from 'zustand';
 import { getCookie } from '@/utils';
 
-interface Project {
+export interface TProject {
   id: number;
   name: string;
+  createdAt: string;
+  updatedAt: string;
+  ownerId: number;
 }
 
-interface File {
+export interface TFile {
   id: number;
   name: string;
   content: string;
@@ -16,13 +19,9 @@ interface File {
   projectId: number;
 }
 
-interface TResponse extends File {
-  project: Project;
-}
-
 interface FileState {
-  files: File[];
-  projects: Project[];
+  files: TFile[];
+  projects: TProject[];
   isLoading: boolean;
   fetchFiles: () => Promise<void>;
 }
@@ -43,7 +42,7 @@ const useFileStore = create<FileState>((set) => ({
 
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_API_URL}/files`,
+        `${import.meta.env.VITE_API_URL}/projects`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -52,24 +51,26 @@ const useFileStore = create<FileState>((set) => ({
       );
 
       if (response.status === 200) {
-        const filesData: TResponse[] = response.data;
-        if (filesData.length === 0) return;
+        const responseData: any[] = response.data;
+        if (responseData.length === 0) return;
 
-        const projects: Project[] = [];
-        const files: File[] = [];
+        const projects: TProject[] = [];
+        const files: TFile[] = [];
 
-        filesData.forEach((file) => {
-          projects.push(file.project);
-          const { project, ...rest } = file;
-          files.push(rest);
+        responseData.forEach((projectData) => {
+          const { files: projectFiles, ...project } = projectData;
+          projects.push(project);
+          projectFiles.forEach((file: TFile) => {
+            files.push(file);
+          });
         });
 
         set({ projects, files });
       } else {
-        console.error('Failed to fetch files:', response.statusText);
+        console.error('Failed to fetch projects:', response.statusText);
       }
     } catch (error: any) {
-      console.error('Error fetching files:', error);
+      console.error('Error fetching projects:', error);
     } finally {
       set({ isLoading: false });
     }

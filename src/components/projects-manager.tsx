@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
+import useFileStore, { TFile, TProject } from '@/store/file.store';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -17,37 +18,38 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 
-interface TFile {
-  value: string;
-  label: string;
+interface FileItemProps {
+  file: TFile;
+  isSelected: boolean;
+  onSelect: (fileName: string) => void;
 }
 
-interface TProject {
-  name: string;
+interface FilesListProps {
   files: TFile[];
+  selectedFile: string;
+  onSelect: (fileName: string) => void;
 }
 
-const projects: TProject[] = [
-  //   {
-  //     name: 'Project A',
-  //     files: [
-  //       { value: 'file1.ts', label: 'File 1' },
-  //       { value: 'file2.ts', label: 'File 2' },
-  //     ],
-  //   },
-  //   {
-  //     name: 'Project B',
-  //     files: [
-  //       { value: 'file3.ts', label: 'File 3' },
-  //       { value: 'file4.ts', label: 'File 4' },
-  //     ],
-  //   },
-];
+interface ProjectsListProps {
+  projects: TProject[];
+  files: TFile[];
+  selectedFile: string;
+  onSelect: (fileName: string) => void;
+}
 
 export function ProjectsFilesBox() {
-  const [open, setOpen] = useState(false);
-  const [selectedFile, setSelectedFile] = useState('');
-  const [selectedProject, setSelectedProject] = useState('');
+  const [open, setOpen] = useState<boolean>(false);
+  const [selectedFile, setSelectedFile] = useState<string>('');
+  const [selectedProject] = useState<string>('');
+
+  const { projects, files } = useFileStore();
+  const projectsArray: TProject[] = Array.from(projects);
+  const filesArray: TFile[] = Array.from(files);
+
+  const handleFileSelect = (fileName: string) => {
+    setSelectedFile((prevFile) => (prevFile === fileName ? '' : fileName));
+    setOpen(false);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -68,37 +70,18 @@ export function ProjectsFilesBox() {
         <Command>
           <CommandInput placeholder="Search file..." />
           <CommandList>
-            <CommandEmpty>No file found.</CommandEmpty>
-            {projects.length === 0 ? (
-              <Button>Create a new Project</Button>
+            {projectsArray.length === 0 ? (
+              <>
+                <CommandEmpty>No project found.</CommandEmpty>
+                <Button>Create a new Project</Button>
+              </>
             ) : (
-              projects.map((project) => (
-                <CommandGroup key={project.name} heading={project.name}>
-                  {project.files.map((file) => (
-                    <CommandItem
-                      key={file.value}
-                      value={file.value}
-                      onSelect={(currentValue) => {
-                        setSelectedFile(
-                          currentValue === selectedFile ? '' : currentValue,
-                        );
-                        setSelectedProject(project.name);
-                        setOpen(false);
-                      }}
-                    >
-                      <Check
-                        className={cn(
-                          'mr-2 h-4 w-4',
-                          selectedFile === file.value
-                            ? 'opacity-100'
-                            : 'opacity-0',
-                        )}
-                      />
-                      {file.label}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              ))
+              <ProjectsList
+                projects={projectsArray}
+                files={filesArray}
+                selectedFile={selectedFile}
+                onSelect={handleFileSelect}
+              />
             )}
           </CommandList>
         </Command>
@@ -106,3 +89,52 @@ export function ProjectsFilesBox() {
     </Popover>
   );
 }
+
+const FileItem = ({ file, isSelected, onSelect }: FileItemProps) => (
+  <CommandItem
+    key={file.id}
+    value={file.name}
+    onSelect={() => onSelect(file.name)}
+  >
+    <Check
+      className={cn('mr-2 h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
+    />
+    {file.name /*Label */}
+  </CommandItem>
+);
+
+const FilesList = ({ files, selectedFile, onSelect }: FilesListProps) => (
+  <>
+    {files.map((file) => (
+      <FileItem
+        key={file.id}
+        file={file}
+        isSelected={file.name === selectedFile}
+        onSelect={onSelect}
+      />
+    ))}
+  </>
+);
+
+const ProjectsList = ({
+  projects,
+  files,
+  selectedFile,
+  onSelect,
+}: ProjectsListProps) => (
+  <>
+    {projects.map((project) => (
+      <CommandGroup key={project.id} heading={project.name}>
+        {files.length === 0 ? (
+          <Button>Create a new File</Button>
+        ) : (
+          <FilesList
+            files={files}
+            selectedFile={selectedFile}
+            onSelect={onSelect}
+          />
+        )}
+      </CommandGroup>
+    ))}
+  </>
+);
