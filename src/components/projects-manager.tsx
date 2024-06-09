@@ -17,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
+import { DialogForm } from './dialog-form';
 
 interface FileItemProps {
   file: TFile;
@@ -46,6 +47,24 @@ export function ProjectsFilesBox() {
   const projectsArray: TProject[] = Array.from(projects);
   const filesArray: TFile[] = Array.from(files);
 
+  function createDialogData(
+    of: 'project' | 'file',
+    submitEndpoint: 'projects' | 'files',
+  ) {
+    return {
+      title: `Create ${of}`,
+      trigger: <Button className="w-full">{`Create new ${of}`}</Button>,
+      description: `Create a new ${of}. Click save when it's done.`,
+      formFields: [
+        {
+          name: 'name',
+          type: 'text',
+        },
+      ],
+      submitEndpoint,
+    };
+  }
+
   const handleFileSelect = (fileName: string) => {
     setSelectedFile((prevFile) => (prevFile === fileName ? '' : fileName));
     setOpen(false);
@@ -73,7 +92,7 @@ export function ProjectsFilesBox() {
             {projectsArray.length === 0 ? (
               <>
                 <CommandEmpty>No project found.</CommandEmpty>
-                <Button>Create a new Project</Button>
+                <DialogForm data={createDialogData('project', 'projects')} />
               </>
             ) : (
               <ProjectsList
