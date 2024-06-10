@@ -32,9 +32,14 @@ export interface DialogProps {
     }[];
     submitEndpoint: string;
   };
+
+  relation?: {
+    onName: string;
+    withValue: string | number;
+  };
 }
 
-export function DialogForm({ data }: DialogProps) {
+export function DialogForm({ data, relation }: DialogProps) {
   const [formData, setFormData] = useState<FormData>({});
   const [submiting, setSubmiting] = useState<boolean>(false);
 
@@ -52,8 +57,18 @@ export function DialogForm({ data }: DialogProps) {
     // console.log(formData);
     // return;
 
+    const bodyData: any = {};
+
+    for (const key in formData) {
+      bodyData[key] = formData[key];
+    }
+
+    if (relation) {
+      bodyData[relation.onName] = relation.withValue;
+    }
+
     setSubmiting(true);
-    const endpoint = `${import.meta.env.VITE_API_URL}/${data.submitEndpoint}`;
+    const endpoint = `${import.meta.env.VITE_API_URL}${data.submitEndpoint}`;
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -61,14 +76,12 @@ export function DialogForm({ data }: DialogProps) {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({
-          name: formData.name,
-        }),
+        body: JSON.stringify(bodyData),
       });
 
       const data = await response.json();
       if (response.status === 201) {
-        toast.success('Project created successfully.');
+        toast.success(`${data.title} created successfully.`);
         //TODO: send the new project/file along with others, or add a new "addProject" function on store
       } else {
         toast.error(

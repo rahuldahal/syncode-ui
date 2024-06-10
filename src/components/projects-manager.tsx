@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, File, Folder } from 'lucide-react';
 import useFileStore, { TFile, TProject } from '@/store/file.store';
 
 import { cn } from '@/lib/utils';
@@ -47,23 +47,18 @@ export function ProjectsFilesBox() {
   const projectsArray: TProject[] = Array.from(projects);
   const filesArray: TFile[] = Array.from(files);
 
-  function createDialogData(
-    of: 'project' | 'file',
-    submitEndpoint: 'projects' | 'files',
-  ) {
-    return {
-      title: `Create ${of}`,
-      trigger: <Button className="w-full">{`Create new ${of}`}</Button>,
-      description: `Create a new ${of}. Click save when it's done.`,
-      formFields: [
-        {
-          name: 'name',
-          type: 'text',
-        },
-      ],
-      submitEndpoint,
-    };
-  }
+  const createProjectData = {
+    title: 'Create a Project',
+    trigger: <Button className="w-full">Create new Project</Button>,
+    description: "Create a new project. Click save when it's done.",
+    formFields: [
+      {
+        name: 'name',
+        type: 'text',
+      },
+    ],
+    submitEndpoint: '/projects',
+  };
 
   const handleFileSelect = (fileName: string) => {
     setSelectedFile((prevFile) => (prevFile === fileName ? '' : fileName));
@@ -92,7 +87,7 @@ export function ProjectsFilesBox() {
             {projectsArray.length === 0 ? (
               <>
                 <CommandEmpty>No project found.</CommandEmpty>
-                <DialogForm data={createDialogData('project', 'projects')} />
+                <DialogForm data={createProjectData} />
               </>
             ) : (
               <ProjectsList
@@ -140,20 +135,82 @@ const ProjectsList = ({
   files,
   selectedFile,
   onSelect,
-}: ProjectsListProps) => (
-  <>
-    {projects.map((project) => (
-      <CommandGroup key={project.id} heading={project.name}>
-        {files.length === 0 ? (
-          <Button>Create a new File</Button>
-        ) : (
-          <FilesList
-            files={files}
-            selectedFile={selectedFile}
-            onSelect={onSelect}
-          />
-        )}
-      </CommandGroup>
-    ))}
-  </>
-);
+}: ProjectsListProps) => {
+  const createFileData = {
+    title: 'Create a File',
+    trigger: (
+      <Button className="w-max h-max p-0 bg-transparent shadow-none">
+        <File className="w-4 fill-primary" />
+      </Button>
+    ),
+    description: "Create a new file. Click save when it's done.",
+    formFields: [
+      {
+        name: 'name',
+        type: 'text',
+      },
+      {
+        name: 'content',
+        type: 'text',
+      },
+    ],
+    submitEndpoint: '/files',
+  };
+
+  const createProjectData = {
+    title: 'Create a Project',
+    trigger: (
+      <Button className="w-max h-max p-0 bg-transparent shadow-none">
+        <Folder className="w-4 fill-primary" />
+      </Button>
+    ),
+    description: "Create a new project. Click save when it's done.",
+    formFields: [
+      {
+        name: 'name',
+        type: 'text',
+      },
+    ],
+    submitEndpoint: '/projects',
+  };
+
+  return (
+    <>
+      {projects.map((project) => {
+        // Files belonging to current project
+        const projectFiles = files.filter(
+          (file) => file.projectId === project.id,
+        );
+
+        return (
+          <CommandGroup
+            key={project.id}
+            heading={
+              <div className="flex items-center justify-between">
+                <span>{project.name}</span>
+                <div className="flex items-end gap-[0.125rem]">
+                  <DialogForm
+                    data={createFileData}
+                    relation={{
+                      onName: 'projectId',
+                      withValue: project.id,
+                    }}
+                  />
+                  <DialogForm data={createProjectData} />
+                </div>
+              </div>
+            }
+          >
+            {projectFiles.length > 0 && (
+              <FilesList
+                files={projectFiles}
+                selectedFile={selectedFile}
+                onSelect={onSelect}
+              />
+            )}
+          </CommandGroup>
+        );
+      })}
+    </>
+  );
+};
