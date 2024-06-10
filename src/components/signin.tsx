@@ -9,6 +9,7 @@ import LoadingButton from './ui/loading-button';
 import { Button } from '@/components/ui/button';
 import { signinSchema } from '@/schemas/signin';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { QueryOptions, query } from '@/utils/axiosQuery';
 import { Navigate, useNavigate } from '@tanstack/react-router';
 import {
   Form,
@@ -18,6 +19,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+
+interface SignInResponse {
+  accessToken: string;
+  message?: string | string[];
+  error?: string;
+  statusCode?: number;
+}
 
 export default function Signin() {
   // INFO: States
@@ -45,35 +53,27 @@ export default function Signin() {
   // INFO: Authentication finish
   // INFO: Signin logic start
 
+  const options: QueryOptions<SignInResponse> = {
+    method: 'POST',
+    endpoint: '/auth/signin',
+    expectedStatus: 200,
+    onSuccess: (data) => {
+      setAccessToken(data.accessToken);
+      toast.success('Signed in successfully! Redirecting to /editor.');
+      fetchFiles();
+      navigate({ to: '/editor' });
+    },
+    onError: (error) => {
+      toast.error(
+        Array.isArray(error.message) ? error.message[0] : error.message,
+      );
+    },
+  };
+
   async function onSubmit(values: z.infer<typeof signinSchema>) {
     setSubmiting(true);
-
-    const endpoint = `${import.meta.env.VITE_API_URL}/auth/signin`;
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-      if (response.status === 200) {
-        setAccessToken(data.accessToken);
-        toast.success('Signed in successfully! Redirecting to /editor.');
-        fetchFiles();
-        navigate({ to: '/editor' });
-      } else {
-        toast.error(
-          Array.isArray(data.message) ? data.message[0] : data.message,
-        );
-      }
-    } catch (error) {
-      console.error('Error during sign in:', error);
-    } finally {
-      setSubmiting(false);
-    }
+    await query(options, { body: JSON.stringify(values) });
+    setSubmiting(false);
   }
 
   return (

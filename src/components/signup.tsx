@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import LoadingButton from './ui/loading-button';
 import { signupSchema } from '@/schemas/signup';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { QueryOptions, query } from '@/utils/axiosQuery';
 import { Navigate, useNavigate } from '@tanstack/react-router';
 
 import {
@@ -19,6 +20,13 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+
+interface SignUpResponse {
+  accessToken: string;
+  message?: string | string[];
+  error?: string;
+  statusCode?: number;
+}
 
 export default function Signup() {
   // INFO: States
@@ -48,35 +56,34 @@ export default function Signup() {
   // INFO: Authentication finish
   // INFO: Signup logic start
 
+  const options: QueryOptions<SignUpResponse> = {
+    method: 'POST',
+    endpoint: '/auth/signup',
+    expectedStatus: 201,
+    // TODO: error status and messages to show:
+    // errorStatus: [
+    //   {
+    //     401: 'Need to sign in',
+    //     403: 'Access Denied'
+    //   }
+    // ],
+    onSuccess: (data) => {
+      setAccessToken(data.accessToken);
+      toast.success('Account created! Redirecting to /editor.');
+      fetchFiles();
+      navigate({ to: '/editor' });
+    },
+    onError: (error) => {
+      toast.error(
+        Array.isArray(error.message) ? error.message[0] : error.message,
+      );
+    },
+  };
+
   async function onSubmit(values: z.infer<typeof signupSchema>) {
     setSubmiting(true);
-
-    const endpoint = `${import.meta.env.VITE_API_URL}/auth/signup`;
-    try {
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-
-      const data = await response.json();
-      if (response.status === 201) {
-        setAccessToken(data.accessToken);
-        toast.success('Account created! Redirecting to /editor.');
-        fetchFiles();
-        navigate({ to: '/editor' });
-      } else {
-        toast.error(
-          Array.isArray(data.message) ? data.message[0] : data.message,
-        );
-      }
-    } catch (error) {
-      console.error('Error during sign up:', error);
-    } finally {
-      setSubmiting(false);
-    }
+    await query(options, { body: JSON.stringify(values) });
+    setSubmiting(false);
   }
 
   return (
