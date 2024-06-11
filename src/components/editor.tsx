@@ -1,6 +1,6 @@
 import { debounce } from 'lodash';
 import AceEditor from 'react-ace';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import useAuthStore from '@/store/auth.store';
 import { Navigate } from '@tanstack/react-router';
 import { ProjectsFilesBox } from './projects-manager';
@@ -17,10 +17,18 @@ const editorStyle = {
 };
 
 export default function Editor() {
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, isLoading, fetchAccessToken } = useAuthStore();
 
   // Use useMemo to create a memoized version of the debounced function
   const debouncedSendChange = useMemo(() => debounce(sendChange, 1000), []);
+
+  useEffect(() => {
+    fetchAccessToken();
+  }, [fetchAccessToken]);
+
+  if (isLoading) {
+    return <h1 className="text-2xl">Loading...</h1>;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/signin" />;
