@@ -3,19 +3,31 @@ import { create } from 'zustand';
 import { getCookie } from '@/utils';
 import { ONE_DAY } from '@/constants';
 
+interface UserInfo {
+  id: number;
+  username: string;
+  picture: string;
+  firstname: string;
+  lastname: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  userInfo: UserInfo | null;
   setAccessToken: (token: string) => void;
   clearAccessToken: () => void;
-  checkAuthStatus: () => Promise<void>;
+  fetchAccessToken: () => Promise<void>;
 }
 
 const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   isAuthenticated: false,
   isLoading: true,
+  userInfo: null,
   setAccessToken: (token) => {
     set({ accessToken: token, isAuthenticated: true, isLoading: false });
 
@@ -23,19 +35,17 @@ const useAuthStore = create<AuthState>((set, get) => ({
     document.cookie = `accessToken=${token}; max-age=${ONE_DAY}; path=/`;
   },
   clearAccessToken: () => {
-    set({ accessToken: null, isAuthenticated: false });
+    set({ accessToken: null, isAuthenticated: false, userInfo: null });
 
     // Clear the cookie
     document.cookie = 'accessToken=; max-age=0; path=/';
   },
-  checkAuthStatus: async () => {
+  fetchAccessToken: async () => {
     const token = get().accessToken || getCookie('accessToken');
     if (!token) {
       set({ isAuthenticated: false, isLoading: false });
       return;
     }
-
-    set({ isLoading: true });
 
     try {
       const response = await axios.get(
@@ -48,13 +58,18 @@ const useAuthStore = create<AuthState>((set, get) => ({
       );
 
       if (response.status === 200) {
-        set({ accessToken: token, isAuthenticated: true });
+        const userData: UserInfo = response.data;
+
+        document.cookie = `accessToken=${token}; max-age=${ONE_DAY}; path=/`;
+        // Wait for userInfo to be updated before setting isAuthenticated to true
+        set({ accessToken: token, userInfo: userData });
+        set({ isAuthenticated: true });
+      } else {
+        set({ isAuthenticated: false });
       }
     } catch (error: any) {
+      console.error('Error fetching user info:', error);
       set({ isAuthenticated: false });
-
-      // Clear the cookie
-      document.cookie = 'accessToken=; max-age=0; path=/';
     } finally {
       set({ isLoading: false });
     }
