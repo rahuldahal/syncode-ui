@@ -53,7 +53,7 @@ export function ProjectsFilesBox() {
     description: "Create a new project. Click save when it's done.",
     formFields: [
       {
-        name: 'name',
+        name: 'Project name',
         type: 'text',
       },
     ],
@@ -87,7 +87,7 @@ export function ProjectsFilesBox() {
             {projectsArray.length === 0 ? (
               <>
                 <CommandEmpty>No project found.</CommandEmpty>
-                <DialogForm data={createProjectData} />
+                <DialogForm info={createProjectData} />
               </>
             ) : (
               <ProjectsList
@@ -146,11 +146,7 @@ const ProjectsList = ({
     description: "Create a new file. Click save when it's done.",
     formFields: [
       {
-        name: 'name',
-        type: 'text',
-      },
-      {
-        name: 'content',
+        name: 'File name',
         type: 'text',
       },
     ],
@@ -167,7 +163,7 @@ const ProjectsList = ({
     description: "Create a new project. Click save when it's done.",
     formFields: [
       {
-        name: 'name',
+        name: 'Project name',
         type: 'text',
       },
     ],
@@ -190,13 +186,13 @@ const ProjectsList = ({
                 <span>{project.name}</span>
                 <div className="flex items-end gap-[0.125rem]">
                   <DialogForm
-                    data={createFileData}
+                    info={createFileData}
                     relation={{
                       onName: 'projectId',
                       withValue: project.id,
                     }}
                   />
-                  <DialogForm data={createProjectData} />
+                  <DialogForm info={createProjectData} />
                 </div>
               </div>
             }

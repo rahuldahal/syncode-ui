@@ -20,7 +20,7 @@ interface FormData {
 }
 
 export interface DialogProps {
-  data: {
+  info: {
     title: string;
     trigger: JSX.Element;
     description?: string;
@@ -39,7 +39,7 @@ export interface DialogProps {
   };
 }
 
-export function DialogForm({ data, relation }: DialogProps) {
+export function DialogForm({ info, relation }: DialogProps) {
   const [formData, setFormData] = useState<FormData>({});
   const [submiting, setSubmiting] = useState<boolean>(false);
 
@@ -68,7 +68,7 @@ export function DialogForm({ data, relation }: DialogProps) {
     }
 
     setSubmiting(true);
-    const endpoint = `${import.meta.env.VITE_API_URL}${data.submitEndpoint}`;
+    const endpoint = `${import.meta.env.VITE_API_URL}${info.submitEndpoint}`;
     try {
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -81,7 +81,7 @@ export function DialogForm({ data, relation }: DialogProps) {
 
       const data = await response.json();
       if (response.status === 201) {
-        toast.success(`${data.title} created successfully.`);
+        toast.success(`${info.title} created successfully.`);
         //TODO: send the new project/file along with others, or add a new "addProject" function on store
       } else {
         toast.error(
@@ -97,17 +97,17 @@ export function DialogForm({ data, relation }: DialogProps) {
 
   return (
     <Dialog>
-      <DialogTrigger asChild>{data.trigger}</DialogTrigger>
+      <DialogTrigger asChild>{info.trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{data.title}</DialogTitle>
-          {data.description && (
-            <DialogDescription>{data.description}</DialogDescription>
+          <DialogTitle>{info.title}</DialogTitle>
+          {info.description && (
+            <DialogDescription>{info.description}</DialogDescription>
           )}
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            {data.formFields.map((field, index) => (
+            {info.formFields.map((field, index) => (
               <div key={index} className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor={field.name} className="capitalize">
                   {field.name}
