@@ -2,6 +2,8 @@ import { toast } from 'sonner';
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import useAuthStore from '@/store/auth.store';
+import useFileStore from '@/store/file.store';
 import { Button } from '@/components/ui/button';
 import LoadingButton from './ui/loading-button';
 import {
@@ -13,7 +15,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import useAuthStore from '@/store/auth.store';
 
 interface FormData {
   [key: string]: string;
@@ -44,6 +45,7 @@ export function DialogForm({ info, relation }: DialogProps) {
   const [submiting, setSubmiting] = useState<boolean>(false);
 
   const { accessToken } = useAuthStore();
+  const { addProject, addFile } = useFileStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -81,8 +83,13 @@ export function DialogForm({ info, relation }: DialogProps) {
 
       const data = await response.json();
       if (response.status === 201) {
+        // assuming title will only be for project and file
+        if (info.title.toLowerCase() === 'project') {
+          addProject(data);
+        } else {
+          addFile(data);
+        }
         toast.success(`${info.title} created successfully.`);
-        //TODO: send the new project/file along with others, or add a new "addProject" function on store
       } else {
         toast.error(
           Array.isArray(data.message) ? data.message[0] : data.message,
@@ -100,7 +107,7 @@ export function DialogForm({ info, relation }: DialogProps) {
       <DialogTrigger asChild>{info.trigger}</DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>{info.title}</DialogTitle>
+          <DialogTitle>{`Create a ${info.title}`}</DialogTitle>
           {info.description && (
             <DialogDescription>{info.description}</DialogDescription>
           )}

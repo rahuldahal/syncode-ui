@@ -48,12 +48,12 @@ export function ProjectsFilesBox() {
   const filesArray: TFile[] = Array.from(files);
 
   const createProjectData = {
-    title: 'Create a Project',
+    title: 'Project',
     trigger: <Button className="w-full">Create new Project</Button>,
     description: "Create a new project. Click save when it's done.",
     formFields: [
       {
-        name: 'Project name',
+        name: 'name',
         type: 'text',
       },
     ],
@@ -137,7 +137,7 @@ const ProjectsList = ({
   onSelect,
 }: ProjectsListProps) => {
   const createFileData = {
-    title: 'Create a File',
+    title: 'File',
     trigger: (
       <Button className="w-max h-max p-0 bg-transparent shadow-none">
         <File className="w-4 fill-primary" />
@@ -146,7 +146,7 @@ const ProjectsList = ({
     description: "Create a new file. Click save when it's done.",
     formFields: [
       {
-        name: 'File name',
+        name: 'name',
         type: 'text',
       },
     ],
@@ -154,7 +154,7 @@ const ProjectsList = ({
   };
 
   const createProjectData = {
-    title: 'Create a Project',
+    title: 'Project',
     trigger: (
       <Button className="w-max h-max p-0 bg-transparent shadow-none">
         <Folder className="w-4 fill-primary" />
@@ -163,7 +163,7 @@ const ProjectsList = ({
     description: "Create a new project. Click save when it's done.",
     formFields: [
       {
-        name: 'Project name',
+        name: 'name',
         type: 'text',
       },
     ],
