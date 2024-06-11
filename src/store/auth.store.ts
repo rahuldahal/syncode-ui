@@ -35,7 +35,7 @@ const useAuthStore = create<AuthState>((set, get) => ({
     document.cookie = `accessToken=${token}; max-age=${ONE_DAY}; path=/`;
   },
   clearAccessToken: () => {
-    set({ accessToken: null, isAuthenticated: false });
+    set({ accessToken: null, isAuthenticated: false, userInfo: null });
 
     // Clear the cookie
     document.cookie = 'accessToken=; max-age=0; path=/';
@@ -59,9 +59,11 @@ const useAuthStore = create<AuthState>((set, get) => ({
 
       if (response.status === 200) {
         const userData: UserInfo = response.data;
-        // Set auth token in cookie with a max age of one day
+
         document.cookie = `accessToken=${token}; max-age=${ONE_DAY}; path=/`;
-        set({ accessToken: token, isAuthenticated: true, userInfo: userData });
+        // Wait for userInfo to be updated before setting isAuthenticated to true
+        set({ accessToken: token, userInfo: userData });
+        set({ isAuthenticated: true });
       } else {
         set({ isAuthenticated: false });
       }

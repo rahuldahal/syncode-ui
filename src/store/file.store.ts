@@ -24,6 +24,7 @@ interface FileState {
   projects: TProject[];
   isLoading: boolean;
   fetchFiles: () => Promise<void>;
+  clearFiles: () => void;
 }
 
 const useFileStore = create<FileState>((set) => ({
@@ -74,6 +75,9 @@ const useFileStore = create<FileState>((set) => ({
     } finally {
       set({ isLoading: false });
     }
+  },
+  clearFiles: () => {
+    set({ files: [], projects: [] });
   },
 }));
 
