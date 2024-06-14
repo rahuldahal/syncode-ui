@@ -1,8 +1,8 @@
-import io from 'socket.io-client';
+import io, { Socket } from 'socket.io-client';
 import { debounce } from 'lodash';
 import AceEditor from 'react-ace';
 import { getCookie } from '@/utils';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import useAuthStore from '@/store/auth.store';
 import useEditorStore from '@/store/editor.store';
 import { Navigate } from '@tanstack/react-router';
@@ -13,6 +13,7 @@ import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/ext-language_tools';
 import { toast } from 'sonner';
 import { Button } from './ui/button';
+import useFileStore from '@/store/file.store';
 
 const editorStyle = {
   width: '100vw',
@@ -21,8 +22,18 @@ const editorStyle = {
   // top: '-72px',
 };
 
+interface DefaultEventsMap {
+  [event: string]: (...args: any[]) => void;
+}
+
 export default function Editor() {
-  const { isAuthenticated, isLoading, fetchAccessToken } = useAuthStore();
+  const [socket, setSocket] = useState<Socket<
+    DefaultEventsMap,
+    DefaultEventsMap
+  > | null>(null);
+  const { isAuthenticated, isLoading, userInfo, fetchAccessToken } =
+    useAuthStore();
+  const { files } = useFileStore();
   const { socketConnected, currentFile, setSocketConnected, clearEditor } =
     useEditorStore();
 
@@ -35,26 +46,26 @@ export default function Editor() {
   }, [fetchAccessToken, clearEditor]);
 
   useEffect(() => {
-    const socket = io(import.meta.env.VITE_WEB_SOCKET_SERVER, {
+    const newSocket = io(import.meta.env.VITE_WEB_SOCKET_SERVER, {
       extraHeaders: {
         Authorization: `Bearer ${getCookie('accessToken')}`,
       },
     });
 
-    socket.on('connect', () => {
+    newSocket.on('connect', () => {
       console.log('Connected to WebSocket server');
       setSocketConnected(true);
     });
 
-    if (socketConnected) {
-      socket.on('message', (data) => {
-        console.log('Message from server:', data);
-      });
-    }
+    newSocket.on('onInvitation', (data) => {
+      console.log('Message from server:', data);
+    });
+
+    setSocket(newSocket);
 
     // Clean up the socket connection when component unmounts
     return () => {
-      socket.disconnect();
+      newSocket.disconnect();
     };
   }, []);
 
@@ -80,11 +91,34 @@ export default function Editor() {
     debouncedSendChange(newValue);
   }
 
+  function handleCollaboration() {
+    if (currentFile.id === 0) {
+      return toast.error('No file is seleced!');
+    }
+
+    if (socket && socketConnected && userInfo) {
+      socket.emit('invite', {
+        sender: {
+          id: userInfo.id,
+          username: userInfo.username,
+        },
+        receiver: 3,
+        filename: currentFile.name,
+      });
+    }
+  }
+
   return (
     <>
       <div>
         <ProjectsFilesBox />
-        <Button className="ml-2">Collaborate</Button>
+        <Button
+          className="ml-2"
+          onClick={handleCollaboration}
+          disabled={files.length === 0}
+        >
+          Collaborate
+        </Button>
       </div>
       <AceEditor
         className="mt-4"
