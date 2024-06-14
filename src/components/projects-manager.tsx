@@ -18,34 +18,37 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { DialogForm } from './dialog-form';
+import useEditorStore from '@/store/editor.store';
 
 interface FileItemProps {
-  file: TFile;
+  file: TFile | null;
   isSelected: boolean;
-  onSelect: (fileName: string) => void;
+  onSelect: (file: TFile | null) => void;
 }
 
 interface FilesListProps {
   files: TFile[];
-  selectedFile: string;
-  onSelect: (fileName: string) => void;
+  selectedFile: TFile | null;
+  onSelect: (file: TFile | null) => void;
 }
 
 interface ProjectsListProps {
   projects: TProject[];
   files: TFile[];
-  selectedFile: string;
-  onSelect: (fileName: string) => void;
+  selectedFile: TFile | null;
+  onSelect: (file: TFile | null) => void;
 }
 
 export function ProjectsFilesBox() {
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedFile, setSelectedFile] = useState<string>('');
-  const [selectedProject] = useState<string>('');
+  const [selectedProject, setSelectedProject] = useState<TProject | null>(null);
+  const [selectedFile, setSelectedFile] = useState<TFile | null>(null);
 
   const { projects, files } = useFileStore();
   const projectsArray: TProject[] = Array.from(projects);
   const filesArray: TFile[] = Array.from(files);
+
+  const { updateCurrentFile } = useEditorStore();
 
   const createProjectData = {
     title: 'Project',
@@ -60,8 +63,22 @@ export function ProjectsFilesBox() {
     submitEndpoint: '/projects',
   };
 
-  const handleFileSelect = (fileName: string) => {
-    setSelectedFile((prevFile) => (prevFile === fileName ? '' : fileName));
+  const handleFileSelect = (updatedFile: TFile | null) => {
+    if (updatedFile === null) return;
+
+    setSelectedFile((prevFile) =>
+      prevFile?.id === updatedFile.id ? prevFile : updatedFile,
+    );
+
+    let updatedProject: TProject | null = null;
+    projectsArray.some((project) => {
+      if (project.id === updatedFile.projectId) {
+        updatedProject = project;
+      }
+    });
+    setSelectedProject(updatedProject);
+
+    updateCurrentFile(updatedFile);
     setOpen(false);
   };
 
@@ -72,10 +89,10 @@ export function ProjectsFilesBox() {
           variant="outline"
           role="combobox"
           aria-expanded={open}
-          className="w-[200px] justify-between"
+          className="w-max justify-between"
         >
-          {selectedFile
-            ? `${selectedProject} - ${selectedFile}`
+          {selectedFile && selectedProject
+            ? `${selectedProject.name} - ${selectedFile.name}`
             : 'Select project and file...'}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -106,14 +123,14 @@ export function ProjectsFilesBox() {
 
 const FileItem = ({ file, isSelected, onSelect }: FileItemProps) => (
   <CommandItem
-    key={file.id}
-    value={file.name}
-    onSelect={() => onSelect(file.name)}
+    key={file?.id}
+    value={file?.name}
+    onSelect={() => onSelect(file)}
   >
     <Check
       className={cn('mr-2 h-4 w-4', isSelected ? 'opacity-100' : 'opacity-0')}
     />
-    {file.name /*Label */}
+    {file?.name /*Label */}
   </CommandItem>
 );
 
@@ -123,7 +140,7 @@ const FilesList = ({ files, selectedFile, onSelect }: FilesListProps) => (
       <FileItem
         key={file.id}
         file={file}
-        isSelected={file.name === selectedFile}
+        isSelected={file.id === selectedFile?.id}
         onSelect={onSelect}
       />
     ))}

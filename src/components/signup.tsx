@@ -1,13 +1,14 @@
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { useForm } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Input } from '@/components/ui/input';
 import useAuthStore from '@/store/auth.store';
 import useFileStore from '@/store/file.store';
 import { Button } from '@/components/ui/button';
 import LoadingButton from './ui/loading-button';
 import { signupSchema } from '@/schemas/signup';
+import useEditorStore from '@/store/editor.store';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { QueryOptions, query } from '@/utils/axiosQuery';
 import { Navigate, useNavigate } from '@tanstack/react-router';
@@ -48,6 +49,13 @@ export default function Signup() {
 
   const { isAuthenticated, setAccessToken } = useAuthStore();
   const { fetchFiles } = useFileStore();
+  const { clearEditor } = useEditorStore();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      clearEditor();
+    }
+  }, [isAuthenticated, clearEditor]);
 
   if (isAuthenticated) {
     return <Navigate to="/editor" />;
