@@ -1,5 +1,6 @@
 import { Label } from '../ui/label';
 import { Input } from '../ui/input';
+import ListUsers from './list-users';
 import { Button } from '../ui/button';
 import { Websocket } from '@/types/socket';
 import { useEffect, useState } from 'react';
@@ -74,19 +75,12 @@ export default function LiveSearch({
       />
       {loading && <LoaderCircle className="block m-auto mt-1 animate-spin" />}
 
-      <ul className="mt-1">
-        {result.map((item: TExpectedResponse) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              onClick={() => setUserSelected(true)}
-              aria-label={`Select ${item.username}`}
-            >
-              {item.username}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <ListUsers
+        users={result}
+        onSelectUser={() => {
+          setUserSelected(true);
+        }}
+      />
 
       {query.length >= 3 && result.length === 0 && (
         <p className="mt-1">No result found</p>
