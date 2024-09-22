@@ -1,12 +1,19 @@
-import io from 'socket.io-client';
 import { Websocket } from '@/types/socket';
 import { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 
-export function useWebSocket(url: string) {
+const useWebSocket = (url: string) => {
   const [socket, setSocket] = useState<Websocket>(null);
+  const [socketConnected, setSocketConnected] = useState<boolean>(false);
 
   useEffect(() => {
     const newSocket = io(url, { withCredentials: true });
+
+    newSocket.on('connect', () => {
+      console.log('Connected to WebSocket server');
+      setSocketConnected(true);
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -14,5 +21,7 @@ export function useWebSocket(url: string) {
     };
   }, [url]);
 
-  return socket;
-}
+  return { socket, socketConnected };
+};
+
+export default useWebSocket;
