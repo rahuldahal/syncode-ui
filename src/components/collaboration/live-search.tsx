@@ -1,0 +1,103 @@
+import { Label } from '../ui/label';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
+import { Websocket } from '@/types/socket';
+import { useEffect, useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
+import { DialogFooter } from '../ui/dialog';
+
+interface LiveSearchProps {
+  socket: Websocket;
+  searchUser: (username: string) => void;
+  invite: () => void;
+  submiting: boolean;
+}
+
+interface TExpectedResponse {
+  id: number;
+  username: string;
+}
+
+export default function LiveSearch({
+  socket,
+  searchUser,
+  invite,
+  submiting,
+}: LiveSearchProps) {
+  const [query, setQuery] = useState<string>('');
+  const [result, setResult] = useState<TExpectedResponse[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [userSelected, setUserSelected] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (socket) {
+      const handleSearchResult = (data: TExpectedResponse[]) => {
+        console.log('Message from server:', data);
+        setResult(data);
+        setLoading(false);
+      };
+
+      socket.on('onSearchResult', handleSearchResult);
+
+      return () => {
+        socket.off('onSearchResult', handleSearchResult);
+      };
+    }
+  }, [socket]);
+
+  useEffect(() => {
+    if (query.length >= 3) {
+      setLoading(true);
+      searchUser(query);
+    } else {
+      setResult([]);
+    }
+  }, [query]);
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault();
+        userSelected && invite();
+      }}
+    >
+      <Label htmlFor="username" className="capitalize">
+        Username
+      </Label>
+      <Input
+        id="username"
+        type="text"
+        placeholder="abhisek_g"
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+          setQuery(e.currentTarget.value.toLowerCase())
+        }
+      />
+      {loading && <LoaderCircle className="block m-auto mt-1 animate-spin" />}
+
+      <ul className="mt-1">
+        {result.map((item: TExpectedResponse) => (
+          <li key={item.id}>
+            <button
+              type="button"
+              onClick={() => setUserSelected(true)}
+              aria-label={`Select ${item.username}`}
+            >
+              {item.username}
+            </button>
+          </li>
+        ))}
+      </ul>
+
+      {query.length >= 3 && result.length === 0 && (
+        <p className="mt-1">No result found</p>
+      )}
+      <DialogFooter>
+        {submiting ? (
+          <Button>Loading...</Button>
+        ) : (
+          <Button type="submit">Invite</Button>
+        )}
+      </DialogFooter>
+    </form>
+  );
+}
