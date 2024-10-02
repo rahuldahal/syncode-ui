@@ -2,6 +2,7 @@ import Logout from './logout';
 import { Link } from '@tanstack/react-router';
 import useAuthStore from '@/store/auth.store';
 import { Avatar, AvatarImage } from './ui/avatar';
+import NotificationPopOver from './notification/popover';
 
 export default function Nav() {
   const { isAuthenticated, userInfo } = useAuthStore();
@@ -16,7 +17,7 @@ export default function Nav() {
           <Avatar>
             <AvatarImage src={avatarSrc} />
           </Avatar>
-
+          <NotificationPopOver />
           <Logout />
         </div>
       )}
