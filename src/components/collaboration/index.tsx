@@ -12,8 +12,7 @@ import { ProjectsFilesBox } from '../projects-manager';
 
 export default function Collaboration() {
   const [submiting, setSubmiting] = useState<boolean>(false);
-  const { isAuthenticated, isLoading, userInfo, fetchAccessToken } =
-    useAuthStore();
+  const { isAuthenticated, userInfo, fetchAccessToken } = useAuthStore();
   const { socketConnected, currentFile, setSocketConnected, clearEditor } =
     useEditorStore();
   const { socket } = useWebSocket(import.meta.env.VITE_WEB_SOCKET_SERVER);
@@ -39,10 +38,6 @@ export default function Collaboration() {
       };
     }
   }, [socket]);
-
-  if (isLoading || !socketConnected) {
-    return <h1 className="text-2xl">Loading...</h1>;
-  }
 
   if (!isAuthenticated) {
     return <Navigate to="/signin" />;
