@@ -7,16 +7,16 @@ import { useEffect, useState } from 'react';
 import { LoaderCircle } from 'lucide-react';
 import { DialogFooter } from '../ui/dialog';
 
-interface LiveSearchProps {
-  socket: Websocket;
-  searchUser: (username: string) => void;
-  invite: () => void;
-  submiting: boolean;
-}
-
 interface TExpectedResponse {
   id: number;
   username: string;
+}
+
+interface LiveSearchProps {
+  socket: Websocket;
+  searchUser: (username: string) => void;
+  invite: (userSelected: TExpectedResponse) => void;
+  submiting: boolean;
 }
 
 export default function LiveSearch({
@@ -28,7 +28,9 @@ export default function LiveSearch({
   const [query, setQuery] = useState<string>('');
   const [result, setResult] = useState<TExpectedResponse[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
-  const [userSelected, setUserSelected] = useState<boolean>(false);
+  const [userSelected, setUserSelected] = useState<TExpectedResponse | null>(
+    null,
+  );
 
   useEffect(() => {
     if (socket) {
@@ -59,7 +61,9 @@ export default function LiveSearch({
     <form
       onSubmit={(e) => {
         e.preventDefault();
-        userSelected && invite();
+        console.log({ userSelected });
+
+        userSelected && invite(userSelected);
       }}
     >
       <Label htmlFor="username" className="capitalize">
@@ -77,8 +81,8 @@ export default function LiveSearch({
 
       <ListUsers
         users={result}
-        onSelectUser={() => {
-          setUserSelected(true);
+        onSelectUser={(username: TExpectedResponse) => {
+          setUserSelected(username);
         }}
       />
 

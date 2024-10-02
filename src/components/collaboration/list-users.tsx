@@ -5,7 +5,7 @@ interface TExpectedResponse {
 
 interface ListUsersProps {
   users: TExpectedResponse[];
-  onSelectUser: (username: string) => void;
+  onSelectUser: (user: TExpectedResponse) => void;
 }
 
 export default function ListUsers({ users, onSelectUser }: ListUsersProps) {
@@ -14,8 +14,9 @@ export default function ListUsers({ users, onSelectUser }: ListUsersProps) {
       {users.map((item) => (
         <li key={item.id}>
           <button
+            className="hover:bg-slate-400"
             type="button"
-            onClick={() => onSelectUser(item.username)}
+            onClick={() => onSelectUser(item)}
             aria-label={`Select ${item.username}`}
           >
             {item.username}

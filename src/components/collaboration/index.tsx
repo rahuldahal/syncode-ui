@@ -10,6 +10,11 @@ import useWebSocket from '@/hooks/use-websockets';
 import { useEffect, useMemo, useState } from 'react';
 import { ProjectsFilesBox } from '../projects-manager';
 
+interface TExpectedResponse {
+  id: number;
+  username: string;
+}
+
 export default function Collaboration() {
   const [submiting, setSubmiting] = useState<boolean>(false);
   const { isAuthenticated, userInfo, fetchAccessToken } = useAuthStore();
@@ -30,6 +35,13 @@ export default function Collaboration() {
       socket.on('connect', () => {
         console.log('Connected to WebSocket server');
         setSocketConnected(true);
+      });
+
+      socket.on('onInvitation', (data) => {
+        console.log(data);
+        toast.info(
+          `Collab request: User ${data.sender.username} on file ${data.file.name}`,
+        );
       });
 
       // Clean up the socket connection when component unmounts
@@ -55,10 +67,12 @@ export default function Collaboration() {
     debouncedSendChange(newValue);
   }
 
-  function invite() {
+  function invite(userSelected: TExpectedResponse) {
     if (currentFile.id === 0) {
       return toast.error('No file is selected!');
     }
+
+    console.log(`Shall invite ${userSelected?.username}`);
 
     if (socket && socketConnected && userInfo) {
       setSubmiting(true);
@@ -67,8 +81,11 @@ export default function Collaboration() {
           id: userInfo.id,
           username: userInfo.username,
         },
-        receiver: 3,
-        filename: currentFile.name,
+        receiver: userSelected,
+        file: {
+          id: currentFile.id,
+          name: currentFile.name,
+        },
       });
     }
   }
