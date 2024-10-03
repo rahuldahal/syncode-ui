@@ -5,29 +5,30 @@ interface Notification {
   type: 'invitation' | 'message' | 'like';
   content: string;
   from: string;
+  onAction: (id: string, action: 'accept' | 'reject') => void;
 }
 
-export default function NotificationItem({
-  notification,
+const NotificationItem: React.FC<Notification> = ({
+  id,
+  type,
+  content,
+  from,
   onAction,
-}: {
-  notification: Notification;
-  onAction: (id: string, action: 'accept' | 'reject') => void;
-}) {
+}) => {
   return (
     <div className="mb-4 border-b pb-4 last:border-b-0">
       <p className="mb-2">
-        <strong>{notification.from}</strong> {notification.content}
+        <strong>{from}</strong> {content}
       </p>
-      {notification.type === 'invitation' && (
+      {type === 'invitation' && (
         <div className="flex space-x-2">
-          <Button size="sm" onClick={() => onAction(notification.id, 'accept')}>
+          <Button size="sm" onClick={() => onAction(id, 'accept')}>
             Accept
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onAction(notification.id, 'reject')}
+            onClick={() => onAction(id, 'reject')}
           >
             Reject
           </Button>
@@ -35,4 +36,6 @@ export default function NotificationItem({
       )}
     </div>
   );
-}
+};
+
+export default NotificationItem;

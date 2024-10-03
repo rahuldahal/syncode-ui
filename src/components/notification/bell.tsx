@@ -1,5 +1,5 @@
-import { useState } from 'react';
 import { Bell } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
@@ -8,48 +8,43 @@ import {
 } from '@/components/ui/tooltip';
 
 interface NotificationBellProps {
-  initialCount?: number;
-  //   onBellClick?: () => void;
+  notificationsCount: number;
+  onClick: () => void;
 }
 
-export default function NotificationBell({
-  initialCount = 0,
-}: NotificationBellProps = {}) {
-  const [count, setCount] = useState(initialCount);
-
-  //   const handleClick = () => {
-  //     if (onBellClick) {
-  //       onBellClick();
-  //     }
-  //     setCount((currentCount) => ++currentCount);
-  //   };
-
+const NotificationBell: React.FC<NotificationBellProps> = ({
+  notificationsCount,
+  onClick,
+}) => {
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div
-            role="button"
-            tabIndex={0}
-            className="relative cursor-pointer"
-            aria-label={`Notifications: ${count} unread`}
+          <Button
+            variant="outline"
+            size="icon"
+            className="relative"
+            onClick={onClick}
+            aria-label={`Notifications: ${notificationsCount} unread`}
           >
             <Bell className="h-[1.2rem] w-[1.2rem]" />
-            {count > 0 && (
+            {notificationsCount > 0 && (
               <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-red-500 text-[10px] font-medium text-white flex items-center justify-center">
-                {count > 9 ? '9+' : count}
+                {notificationsCount > 99 ? '99+' : notificationsCount}
               </span>
             )}
-          </div>
+          </Button>
         </TooltipTrigger>
         <TooltipContent>
           <p>
-            {count === 1
+            {notificationsCount === 1
               ? '1 unread notification'
-              : `${count} unread notifications`}
+              : `${notificationsCount} unread notifications`}
           </p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
   );
-}
+};
+
+export default NotificationBell;
