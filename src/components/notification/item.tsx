@@ -1,12 +1,5 @@
 import { Button } from '@/components/ui/button';
-
-interface Notification {
-  id: string;
-  type: 'invitation' | 'message' | 'like';
-  content: string;
-  from: string;
-  onAction: (id: string, action: 'accept' | 'reject') => void;
-}
+import useNotificationStore, { Notification } from '@/store/notification.store';
 
 const NotificationItem: React.FC<Notification> = ({
   id,
@@ -15,20 +8,28 @@ const NotificationItem: React.FC<Notification> = ({
   from,
   onAction,
 }) => {
+  const { removeNotification } = useNotificationStore();
+
+  function handleClick(id: number, action: 'accept' | 'reject') {
+    onAction && onAction(id, action);
+    removeNotification(id);
+  }
+
   return (
     <div className="mb-4 border-b pb-4 last:border-b-0">
+      <h6 className="capitalize">{type}</h6>
       <p className="mb-2">
-        <strong>{from}</strong> {content}
+        <strong>{from.username}</strong> {content}
       </p>
       {type === 'invitation' && (
         <div className="flex space-x-2">
-          <Button size="sm" onClick={() => onAction(id, 'accept')}>
+          <Button size="sm" onClick={() => handleClick(id, 'accept')}>
             Accept
           </Button>
           <Button
             size="sm"
             variant="outline"
-            onClick={() => onAction(id, 'reject')}
+            onClick={() => handleClick(id, 'reject')}
           >
             Reject
           </Button>

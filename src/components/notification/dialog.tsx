@@ -6,27 +6,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
-
-interface Notification {
-  id: string;
-  type: 'invitation' | 'message' | 'like';
-  content: string;
-  from: string;
-  onAction?: (id: string, action: 'accept' | 'reject') => void;
-}
+import { Notification } from '@/store/notification.store';
 
 interface NotificationDialogProps {
   isOpen: boolean;
   onClose: () => void;
   notifications: Notification[];
-  onAction: (id: string, action: 'accept' | 'reject') => void;
 }
 
 const NotificationDialog: React.FC<NotificationDialogProps> = ({
   isOpen,
   onClose,
   notifications,
-  onAction,
 }) => {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -41,11 +32,7 @@ const NotificationDialog: React.FC<NotificationDialogProps> = ({
             </p>
           ) : (
             notifications.map((notification) => (
-              <NotificationItem
-                key={notification.id}
-                {...notification}
-                onAction={onAction}
-              />
+              <NotificationItem key={notification.id} {...notification} />
             ))
           )}
         </ScrollArea>

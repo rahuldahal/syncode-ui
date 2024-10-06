@@ -3,17 +3,15 @@ import { debounce } from 'lodash';
 import CodeEditor from './code-editor';
 import LiveSearch from './live-search';
 import Collaborate from './invite-dialog';
+import { TUserBase } from '@/types/users';
 import useAuthStore from '@/store/auth.store';
 import useEditorStore from '@/store/editor.store';
 import { Navigate } from '@tanstack/react-router';
 import useWebSocket from '@/hooks/use-websockets';
 import { useEffect, useMemo, useState } from 'react';
 import { ProjectsFilesBox } from '../projects-manager';
-
-interface TExpectedResponse {
-  id: number;
-  username: string;
-}
+import { collabMessages } from '@/constants/collaboration';
+import useNotificationStore from '@/store/notification.store';
 
 export default function Collaboration() {
   const [submiting, setSubmiting] = useState<boolean>(false);
@@ -21,6 +19,7 @@ export default function Collaboration() {
   const { socketConnected, currentFile, setSocketConnected, clearEditor } =
     useEditorStore();
   const { socket } = useWebSocket(import.meta.env.VITE_WEB_SOCKET_SERVER);
+  const { addNotification } = useNotificationStore();
 
   // Use useMemo to create a memoized version of the debounced function
   const debouncedSendChange = useMemo(() => debounce(sendChange, 1000), []);
@@ -42,6 +41,18 @@ export default function Collaboration() {
         toast.info(
           `Collab request: User ${data.sender.username} on file ${data.file.name}`,
         );
+        addNotification({
+          id: 0, // TODO: Generate a unique ID like a real application
+          type: 'invitation',
+          content: collabMessages.invitation(
+            data.sender.username,
+            data.file.name,
+          ),
+          from: data.sender,
+          onAction: (id, action) => {
+            console.log(`Notification ${id} should be ${action}ed.`);
+          },
+        });
       });
 
       // Clean up the socket connection when component unmounts
@@ -49,7 +60,7 @@ export default function Collaboration() {
         socket.disconnect();
       };
     }
-  }, [socket]);
+  }, [addNotification, setSocketConnected, socket]);
 
   if (!isAuthenticated) {
     return <Navigate to="/signin" />;
@@ -67,7 +78,7 @@ export default function Collaboration() {
     debouncedSendChange(newValue);
   }
 
-  function invite(userSelected: TExpectedResponse) {
+  function invite(userSelected: TUserBase) {
     if (currentFile.id === 0) {
       return toast.error('No file is selected!');
     }
